@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/Irai/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10b981" />
+    <meta name="description" content="Iraí - Calculadora de IRA" />
+    <link rel="apple-touch-icon" href="/Irai/logo192.png" />
+    <link rel="manifest" href="/Irai/manifest.json" />
+    <title>Iraí</title>
+    <script type="module" crossorigin src="/Irai/assets/index-BaBEjQYZ.js"></script>
+    <link rel="stylesheet" crossorigin href="/Irai/assets/index-BbBGMsS7.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/Irai/sw.js')
+            .catch((error) => {
+              console.log('Erro ao registrar o Service Worker:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
