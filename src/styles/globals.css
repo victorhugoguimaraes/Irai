@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply min-h-screen bg-green-900;
+  }
+  
+  #__next {
+    @apply min-h-screen;
+  }
+}
+
+/* Fallback para garantir o fundo verde */
+body {
+  background-color: #065f46;
+  min-height: 100vh;
+} 

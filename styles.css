@@ -1,0 +1,7 @@
+.total-hours {
+    display: flex;
+    justify-content: center; /* Centraliza o conteúdo horizontalmente */
+    align-items: center; /* Centraliza o conteúdo verticalmente */
+    font-size: 1.5em; /* Aumenta o tamanho da fonte */
+    margin: 20px 0; /* Adiciona margem superior e inferior */
+} 

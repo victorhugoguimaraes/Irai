@@ -2,7 +2,7 @@ import { useState, useContext } from 'react';
 import { CursoContext } from '../../contexts/CursoContext';
 
 export function HorasExtras() {
-  const { horasExtras, setHorasExtras } = useContext(CursoContext);
+  const { horasExtras = [], setHorasExtras } = useContext(CursoContext);
   const [novaAtividade, setNovaAtividade] = useState({
     descricao: '',
     horas: '',
@@ -35,7 +35,7 @@ export function HorasExtras() {
     setHorasExtras(horasExtras.filter(hora => hora.id !== id));
   };
 
-  const totalHoras = horasExtras.reduce((sum, atividade) => sum + atividade.horas, 0);
+  const totalHoras = horasExtras.reduce((sum, atividade) => sum + (Number(atividade.horas) || 0), 0);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden">
@@ -111,7 +111,7 @@ export function HorasExtras() {
           </button>
         </form>
 
-        {horasExtras.length > 0 && (
+        {Array.isArray(horasExtras) && horasExtras.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -145,4 +145,4 @@ export function HorasExtras() {
       </div>
     </div>
   );
-}
+} 
