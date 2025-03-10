@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { db } from '../config/firebase';
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 export function useDataSync(userId, initialData = {}) {
-  const [data, setData] = useState(() => {
-    const localData = localStorage.getItem(`user_${userId}`);
-    return localData ? JSON.parse(localData) : initialData;
-  });
-
+  const [data, setData] = useState(initialData);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Monitor de conexão
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -23,53 +21,77 @@ export function useDataSync(userId, initialData = {}) {
     };
   }, []);
 
-  // Sincroniza com localStorage
+  // Carrega dados iniciais
   useEffect(() => {
-    localStorage.setItem(`user_${userId}`, JSON.stringify(data));
-  }, [userId, data]);
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
 
-  // Sincroniza com Firebase quando online
-  useEffect(() => {
-    if (!userId || !isOnline) return;
-
-    const userDoc = doc(db, 'users', userId);
-    
-    // Escuta mudanças do Firebase
-    const unsubscribe = onSnapshot(userDoc, (doc) => {
-      if (doc.exists()) {
-        const firebaseData = doc.data();
-        const localData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
+    const loadInitialData = async () => {
+      try {
+        // Carrega dados do Firestore
+        const userDoc = doc(db, 'users', userId);
+        const docSnap = await getDoc(userDoc);
         
-        // Compara timestamps para decidir qual dado usar
-        if (firebaseData.lastUpdated > (localData.lastUpdated || 0)) {
+        if (docSnap.exists()) {
+          const firebaseData = docSnap.data();
           setData(firebaseData);
           localStorage.setItem(`user_${userId}`, JSON.stringify(firebaseData));
+        } else {
+          // Se não há dados no Firestore, usa o initialData
+          setData(initialData);
+          localStorage.setItem(`user_${userId}`, JSON.stringify(initialData));
         }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        // Em caso de erro, tenta usar dados do localStorage
+        const localData = localStorage.getItem(`user_${userId}`);
+        if (localData) {
+          setData(JSON.parse(localData));
+        }
+      } finally {
+        setIsLoading(false);
       }
+    };
+
+    loadInitialData();
+
+    // Configura listener para atualizações em tempo real
+    const unsubscribe = onSnapshot(doc(db, 'users', userId), (doc) => {
+      if (doc.exists()) {
+        const firebaseData = doc.data();
+        setData(firebaseData);
+        localStorage.setItem(`user_${userId}`, JSON.stringify(firebaseData));
+      }
+    }, (error) => {
+      console.error('Erro no listener:', error);
     });
 
     return () => unsubscribe();
-  }, [userId, isOnline]);
+  }, [userId, initialData]);
 
   // Função para atualizar dados
   const updateData = async (newData) => {
-    const timestamp = Date.now();
-    const updatedData = { ...newData, lastUpdated: timestamp };
-    
-    // Atualiza estado e localStorage
-    setData(updatedData);
-    localStorage.setItem(`user_${userId}`, JSON.stringify(updatedData));
+    if (!userId) return;
 
-    // Tenta sincronizar com Firebase se online
-    if (isOnline && userId) {
-      try {
+    try {
+      // Remove o lastUpdated se existir no newData
+      const { lastUpdated, ...dataWithoutTimestamp } = newData;
+      
+      // Atualiza estado e localStorage
+      setData(dataWithoutTimestamp);
+      localStorage.setItem(`user_${userId}`, JSON.stringify(dataWithoutTimestamp));
+
+      // Sincroniza com Firebase se online
+      if (isOnline) {
         const userDoc = doc(db, 'users', userId);
-        await setDoc(userDoc, updatedData, { merge: true });
-      } catch (error) {
-        console.error('Erro ao sincronizar com Firebase:', error);
+        await setDoc(userDoc, dataWithoutTimestamp, { merge: true });
       }
+    } catch (error) {
+      console.error('Erro ao atualizar dados:', error);
     }
   };
 
-  return [data, updateData, isOnline];
+  return [data, updateData, isLoading];
 } 

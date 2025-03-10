@@ -17,10 +17,12 @@ export function Semestre({ numero, disciplinas, onAddDisciplina, onRemoveDiscipl
     e.preventDefault();
     if (!novaDisciplina.nome || !novaDisciplina.horas) return;
 
+    const nota = novaDisciplina.status === 'Cursando' ? '' : Number(novaDisciplina.nota);
+
     onAddDisciplina(numero, {
       ...novaDisciplina,
       horas: Number(novaDisciplina.horas),
-      nota: Number(novaDisciplina.nota) || 0
+      nota: nota
     });
 
     setNovaDisciplina({
@@ -109,14 +111,15 @@ export function Semestre({ numero, disciplinas, onAddDisciplina, onRemoveDiscipl
                 value={novaDisciplina.nota}
                 onChange={(e) => handleInputChange('nota', e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required={novaDisciplina.status === 'Aprovado' || novaDisciplina.status === 'Reprovado'}
               >
                 <option value="">Selecione...</option>
-                <option value="5">SS (5.0)</option>
-                <option value="4">MS (4.0)</option>
-                <option value="3">MM (3.0)</option>
-                <option value="2">MI (2.0)</option>
-                <option value="1">II (1.0)</option>
-                <option value="0">SR (0.0)</option>
+                <option value="5">SS</option>
+                <option value="4">MS</option>
+                <option value="3">MM</option>
+                <option value="2">MI</option>
+                <option value="1">II</option>
+                <option value="0">SR</option>
               </select>
             </div>
           )}

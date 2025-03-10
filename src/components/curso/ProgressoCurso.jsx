@@ -2,7 +2,7 @@ import { useContext, useMemo } from 'react';
 import { CursoContext } from '../../contexts/CursoContext';
 
 export function ProgressoCurso() {
-  const { cursoInfo, estatisticas } = useContext(CursoContext);
+  const { cursoInfo, estatisticas, horasExtras } = useContext(CursoContext);
 
   const progresso = useMemo(() => {
     const calcularPorcentagem = (feitas, total) => {
@@ -10,113 +10,156 @@ export function ProgressoCurso() {
       return (feitas / total) * 100;
     };
 
-    return {
-      obrigatorias: {
-        feitas: estatisticas.horasObrigatoriasFeitas,
-        total: cursoInfo.horasObrigatorias,
-        porcentagem: calcularPorcentagem(estatisticas.horasObrigatoriasFeitas, cursoInfo.horasObrigatorias)
-      },
-      optativas: {
-        feitas: estatisticas.horasOptativasFeitas,
-        total: cursoInfo.horasOptativas,
-        porcentagem: calcularPorcentagem(estatisticas.horasOptativasFeitas, cursoInfo.horasOptativas)
-      },
-      moduloLivre: {
-        feitas: estatisticas.horasModuloLivreFeitas,
-        total: cursoInfo.horasModuloLivre,
-        porcentagem: calcularPorcentagem(estatisticas.horasModuloLivreFeitas, cursoInfo.horasModuloLivre)
-      },
-      total: {
-        feitas: estatisticas.horasObrigatoriasFeitas + estatisticas.horasOptativasFeitas + estatisticas.horasModuloLivreFeitas,
-        total: cursoInfo.horasTotal,
-        porcentagem: calcularPorcentagem(
-          estatisticas.horasObrigatoriasFeitas + estatisticas.horasOptativasFeitas + estatisticas.horasModuloLivreFeitas,
-          cursoInfo.horasTotal
-        )
-      }
+    // Garante que todos os valores sejam números
+    const horasObrigatorias = Number(estatisticas.horasObrigatoriasFeitas) || 0;
+    const horasOptativas = Number(estatisticas.horasOptativasFeitas) || 0;
+    const totalHorasExtras = Array.isArray(horasExtras) 
+      ? horasExtras.reduce((sum, extra) => sum + Number(extra.horas), 0)
+      : 0;
+    const horasModuloLivre = Number(estatisticas.horasModuloLivreFeitas) || 0;
+
+    // Soma todas as horas não obrigatórias
+    const totalHorasNaoObrigatorias = horasOptativas + totalHorasExtras + horasModuloLivre;
+
+    // Total geral de horas
+    const horasTotal = horasObrigatorias + totalHorasNaoObrigatorias;
+
+    const horasCompletadas = {
+      obrigatorias: horasObrigatorias,
+      optativas: totalHorasNaoObrigatorias, // Inclui optativas + extras + módulo livre
+      horasExtras: totalHorasExtras,
+      moduloLivre: horasModuloLivre,
+      total: horasTotal
     };
-  }, [cursoInfo, estatisticas]);
 
-  return (
-    <div className="space-y-6 h-full flex flex-col justify-between py-2">
-      <h3 className="text-lg font-medium text-gray-900">Progresso do Curso</h3>
-      
-      <div className="space-y-6 flex-grow">
-        <div className="space-y-5">
-          <ProgressBar 
-            label="Obrigatórias" 
-            percentage={progresso.obrigatorias.porcentagem}
-            feitas={progresso.obrigatorias.feitas}
-            total={progresso.obrigatorias.total}
-            color="emerald"
-          />
-          <ProgressBar 
-            label="Optativas" 
-            percentage={progresso.optativas.porcentagem}
-            feitas={progresso.optativas.feitas}
-            total={progresso.optativas.total}
-            color="blue"
-          />
-          <ProgressBar 
-            label="Módulo Livre" 
-            percentage={progresso.moduloLivre.porcentagem}
-            feitas={progresso.moduloLivre.feitas}
-            total={progresso.moduloLivre.total}
-            color="purple"
-          />
-        </div>
+    const horasFaltantes = {
+      obrigatorias: Math.max(0, (cursoInfo.horasObrigatorias || 0) - horasObrigatorias),
+      optativas: Math.max(0, (cursoInfo.horasOptativas || 0) - totalHorasNaoObrigatorias),
+      moduloLivre: Math.max(0, (cursoInfo.horasModuloLivre || 0) - horasModuloLivre),
+      total: Math.max(0, (cursoInfo.horasTotal || 0) - horasTotal)
+    };
 
-        <div className="pt-6 border-t">
-          <ProgressBar 
-            label="Total do Curso" 
-            percentage={progresso.total.porcentagem}
-            feitas={progresso.total.feitas}
-            total={progresso.total.total}
-            color="gray"
-            size="lg"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+    return {
+      obrigatorias: calcularPorcentagem(horasObrigatorias, cursoInfo.horasObrigatorias),
+      optativas: calcularPorcentagem(totalHorasNaoObrigatorias, cursoInfo.horasOptativas),
+      horasExtras: calcularPorcentagem(totalHorasExtras, cursoInfo.horasOptativas),
+      moduloLivre: calcularPorcentagem(horasModuloLivre, cursoInfo.horasModuloLivre),
+      total: calcularPorcentagem(horasTotal, cursoInfo.horasTotal),
+      horasCompletadas,
+      horasFaltantes
+    };
+  }, [cursoInfo, estatisticas, horasExtras]);
 
-function ProgressBar({ label, percentage, feitas, total, color, size = 'default' }) {
-  const colors = {
-    emerald: 'bg-emerald-600',
-    blue: 'bg-blue-600',
-    purple: 'bg-purple-600',
-    gray: 'bg-gray-600'
+  const formatarProgresso = (valor) => {
+    return valor.toFixed(1);
   };
 
-  const sizes = {
-    default: 'h-2.5',
-    lg: 'h-3'
-  };
-
-  // Garante que a porcentagem seja um número válido entre 0 e 100
-  const width = Math.min(Math.max(isNaN(percentage) ? 0 : percentage, 0), 100);
-
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className={`text-${size === 'lg' ? 'base' : 'sm'} font-medium text-gray-700`}>
-            {label}
-          </span>
-          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-            {feitas}h / {total}h
-          </span>
-        </div>
-        <span className={`text-${size === 'lg' ? 'base' : 'sm'} font-medium text-gray-700`}>
-          {width.toFixed(1)}%
-        </span>
+    <div className="space-y-6 p-6 bg-white rounded-xl shadow-sm">
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-gray-900">Progresso do Curso</h2>
       </div>
-      <div className={`w-full bg-gray-200 rounded-full ${sizes[size]}`}>
-        <div
-          className={`${sizes[size]} rounded-full transition-all duration-300 ${colors[color]}`}
-          style={{ width: `${width}%` }}
-        />
+
+      <div className="space-y-4">
+        {/* Disciplinas Obrigatórias */}
+        <div>
+          <div className="flex justify-between mb-1">
+            <span className="text-sm font-medium text-gray-700">Obrigatórias</span>
+            <span className="text-sm font-medium text-gray-700">
+              {formatarProgresso(progresso.obrigatorias)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full"
+              style={{ width: `${Math.min(progresso.obrigatorias, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1 text-xs text-gray-500">
+            <span>{progresso.horasCompletadas.obrigatorias}h / {cursoInfo.horasObrigatorias || 0}h</span>
+            <span>Faltam: {progresso.horasFaltantes.obrigatorias}h</span>
+          </div>
+        </div>
+
+        {/* Disciplinas Optativas */}
+        <div>
+          <div className="flex justify-between mb-1">
+            <span className="text-sm font-medium text-gray-700">Optativas</span>
+            <span className="text-sm font-medium text-gray-700">
+              {formatarProgresso(progresso.optativas)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-green-600 h-2 rounded-full"
+              style={{ width: `${Math.min(progresso.optativas, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1 text-xs text-gray-500">
+            <span>{progresso.horasCompletadas.optativas}h / {cursoInfo.horasOptativas || 0}h</span>
+            <span>Faltam: {progresso.horasFaltantes.optativas}h</span>
+          </div>
+        </div>
+
+        {/* Horas Extras */}
+        <div>
+          <div className="flex justify-between mb-1">
+            <span className="text-sm font-medium text-gray-700">Horas Extras</span>
+            <span className="text-sm font-medium text-gray-700">
+              {formatarProgresso(progresso.horasExtras)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-emerald-600 h-2 rounded-full"
+              style={{ width: `${Math.min(progresso.horasExtras, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1 text-xs text-gray-500">
+            <span>{progresso.horasCompletadas.horasExtras}h</span>
+            <span>(Conta como optativa)</span>
+          </div>
+        </div>
+
+        {/* Módulo Livre */}
+        <div>
+          <div className="flex justify-between mb-1">
+            <span className="text-sm font-medium text-gray-700">Módulo Livre</span>
+            <span className="text-sm font-medium text-gray-700">
+              {formatarProgresso(progresso.moduloLivre)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-purple-600 h-2 rounded-full"
+              style={{ width: `${Math.min(progresso.moduloLivre, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1 text-xs text-gray-500">
+            <span>{progresso.horasCompletadas.moduloLivre}h / {cursoInfo.horasModuloLivre || 0}h</span>
+            <span>Faltam: {progresso.horasFaltantes.moduloLivre}h</span>
+          </div>
+        </div>
+
+        {/* Total do Curso */}
+        <div>
+          <div className="flex justify-between mb-1">
+            <span className="text-sm font-medium text-gray-700">Total do Curso</span>
+            <span className="text-sm font-medium text-gray-700">
+              {formatarProgresso(progresso.total)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-indigo-600 h-2 rounded-full"
+              style={{ width: `${Math.min(progresso.total, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1 text-xs text-gray-500">
+            <span>{progresso.horasCompletadas.total}h / {cursoInfo.horasTotal || 0}h</span>
+            <span>Faltam: {progresso.horasFaltantes.total}h</span>
+          </div>
+        </div>
       </div>
     </div>
   );

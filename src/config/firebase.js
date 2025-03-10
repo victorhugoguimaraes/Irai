@@ -6,25 +6,43 @@ import {
   signInWithPopup, 
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  signOut
+  signOut,
+  setPersistence,
+  browserLocalPersistence
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBtZyPScwTUw-G30StJilTG7AKDvhx7mVo",
-  authDomain: "irai-17b31.firebaseapp.com",
-  projectId: "irai-17b31",
-  storageBucket: "irai-17b31.firebasestorage.app",
-  messagingSenderId: "946542637548",
-  appId: "1:946542637548:web:6d55d7c1b95feb73e250c9",
-  measurementId: "G-GCJNDPK7YV"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 const auth = getAuth(app);
 const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
 
-export { auth, db, googleProvider, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword, signOut }; 
+// Configura persistência local
+setPersistence(auth, browserLocalPersistence);
+
+// Configura o provedor do Google
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+export { 
+  auth, 
+  db, 
+  googleProvider, 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  createUserWithEmailAndPassword, 
+  signOut 
+}; 

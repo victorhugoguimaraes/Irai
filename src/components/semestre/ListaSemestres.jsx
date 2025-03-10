@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import { CursoContext } from '../../contexts/CursoContext';
 import { Semestre } from './Semestre';
-import { calcularIRASemestre } from '../../utils/calculosAcademicos';
 
 export function ListaSemestres() {
   const { semestres = [], setSemestres } = useContext(CursoContext);
@@ -47,16 +46,9 @@ export function ListaSemestres() {
       {Array.isArray(semestres) && semestres.map((semestre) => (
         <div key={semestre.numero} className="animate-fadeIn">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-medium text-gray-900">
-                {semestre.numero}º Semestre
-              </h2>
-              <div className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
-                <span className="text-sm font-medium text-emerald-700">
-                  IRA: {calcularIRASemestre(semestre.disciplinas || []).toFixed(4)}
-                </span>
-              </div>
-            </div>
+            <h2 className="text-lg font-medium text-gray-900">
+              {semestre.numero}º Semestre
+            </h2>
             {semestres.length > 1 && (
               <button
                 onClick={() => removerSemestre(semestre.numero)}

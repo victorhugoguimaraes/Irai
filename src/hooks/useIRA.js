@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 
-const MENCOES = {
-  'SS': 5,
-  'MS': 4,
-  'MM': 3,
-  'MI': 2,
-  'II': 1,
-  'SR': 0
+// Mapeamento de valor numérico para menção
+const VALOR_PARA_MENCAO = {
+  5: 'SS',
+  4: 'MS',
+  3: 'MM',
+  2: 'MI',
+  1: 'II',
+  0: 'SR'
 };
 
 export function useIRA(semestres) {
@@ -17,21 +18,28 @@ export function useIRA(semestres) {
     let denominador = 0;
 
     semestres.forEach((semestre, index) => {
-      const semestreIndex = Math.min(index + 1, 6); // Limita o peso do semestre a 6
+      const pesoSemestre = Math.min(index + 1, 6);
       
       semestre.disciplinas?.forEach(disciplina => {
-        if (disciplina.mencao && disciplina.creditos) {
-          const mencaoValor = MENCOES[disciplina.mencao] || 0;
-          const creditos = Number(disciplina.creditos) || 0;
-          
-          numerador += mencaoValor * creditos * semestreIndex;
-          denominador += creditos * semestreIndex;
+        if (disciplina.status === 'CUMP' || disciplina.nota === undefined || disciplina.nota === '') {
+          return;
+        }
+
+        const mencaoValor = Number(disciplina.nota);
+        const creditos = Math.floor(Number(disciplina.horas) / 15);
+
+        if (!isNaN(mencaoValor) && creditos > 0) {
+          const contribuicao = mencaoValor * creditos * pesoSemestre;
+          numerador += contribuicao;
+          denominador += creditos * pesoSemestre;
         }
       });
     });
 
     if (denominador === 0) return 0;
-    return numerador / denominador;
+    
+    const ira = Number((numerador / denominador).toFixed(3));
+    return ira;
   }, [semestres]);
 }
 
@@ -48,7 +56,7 @@ export function calcularTotalCreditos(semestres) {
 export function calcularCreditosCursados(semestres) {
   return semestres.reduce((total, semestre) => {
     return total + (semestre.disciplinas?.reduce((sum, disciplina) => {
-      return sum + (disciplina.mencao ? (Number(disciplina.creditos) || 0) : 0);
+      return sum + (disciplina.status === 'APR' ? (Number(disciplina.creditos) || 0) : 0);
     }, 0) || 0);
   }, 0);
 } 

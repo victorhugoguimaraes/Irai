@@ -44,18 +44,19 @@ export function Cadastro({ onLogin, onVoltar }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-          <div className="text-center">
-            <img
-              className="mx-auto h-12 w-auto"
-              src="/logo.svg"
-              alt="Iraí"
-            />
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-              Crie sua conta
-            </h2>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-green-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="flex flex-col items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white mb-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3m6.82 6L12 12.72L5.18 9L12 5.28L18.82 9M17 15.99l-5 2.73l-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+          </svg>
+          <h1 className="text-4xl font-bold text-white mb-2">Iraí</h1>
+          <p className="text-lg text-green-100">Gerenciador de Progresso Acadêmico</p>
+        </div>
+
+        <div className="bg-white py-8 px-10 shadow-xl rounded-2xl">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900">Criar sua conta</h2>
             <p className="mt-2 text-sm text-gray-600">
               Ou{' '}
               <button 
@@ -67,7 +68,7 @@ export function Cadastro({ onLogin, onVoltar }) {
             </p>
           </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">

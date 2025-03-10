@@ -4,22 +4,19 @@ import { useAuth } from '../../hooks/useAuth';
 import { useUserData } from '../../hooks/useUserData';
 import { Modal } from '../common/Modal';
 import { InputField } from '../common/InputField';
+import { useIRA } from '../../hooks/useIRA';
 
 // Componente de exibição
 export function InfoCurso() {
-  const { cursoInfo, estatisticas } = useContext(CursoContext);
   const { user } = useAuth();
-  const [userData] = useUserData(user?.uid);
+  const { cursoInfo, semestres, estatisticas } = useContext(CursoContext);
+  const ira = useIRA(semestres);
 
   return (
-    <div className="space-y-8">
-      {/* Nome do Aluno e Curso */}
-      <div className="border-b pb-6">
-        <h3 className="text-sm font-medium text-gray-500 mb-1">Aluno</h3>
-        <p className="text-xl font-semibold text-gray-900">
-          {userData?.nomeUsuario || user?.displayName || 'Não informado'}
-        </p>
-        <h3 className="text-sm font-medium text-gray-500 mt-4 mb-1">Curso</h3>
+    <div className="space-y-6">
+      {/* Nome do Curso */}
+      <div>
+        <p className="text-sm font-medium text-gray-500">Curso</p>
         <p className="text-xl font-semibold text-gray-900">
           {cursoInfo.nome || 'Não informado'}
         </p>
@@ -31,21 +28,21 @@ export function InfoCurso() {
           <div>
             <p className="text-sm font-medium text-gray-500">IRA</p>
             <p className="mt-1 text-xl font-semibold text-emerald-600">
-              {estatisticas.ira.toFixed(4)}
+              {ira ? ira.toFixed(3) : '0.000'}
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-gray-500">Disciplinas Cursadas</p>
             <p className="mt-1 text-xl font-semibold text-gray-900">
-              {estatisticas.disciplinasCompletadas}
+              {estatisticas.disciplinasCompletadas || 0}
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-gray-500">Créditos Obtidos</p>
             <p className="mt-1 text-xl font-semibold text-gray-900">
-              {estatisticas.creditosObtidos}
+              {estatisticas.creditosObtidos || 0}
             </p>
           </div>
         </div>
@@ -58,28 +55,28 @@ export function InfoCurso() {
           <div>
             <p className="text-sm font-medium text-gray-500">Total</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
-              {cursoInfo.horasTotal > 0 ? `${cursoInfo.horasTotal}h` : 'Não informado'}
+              {cursoInfo.horasTotal || 0}h
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-gray-500">Obrigatórias</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
-              {cursoInfo.horasObrigatorias > 0 ? `${cursoInfo.horasObrigatorias}h` : 'Não informado'}
+              {cursoInfo.horasObrigatorias || 0}h
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-gray-500">Optativas</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
-              {cursoInfo.horasOptativas > 0 ? `${cursoInfo.horasOptativas}h` : 'Não informado'}
+              {cursoInfo.horasOptativas || 0}h
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-500">Módulo Livre</p>
+            <p className="text-sm font-medium text-gray-500">Limite de Módulo Livre</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
-              {cursoInfo.horasModuloLivre > 0 ? `${cursoInfo.horasModuloLivre}h` : 'Não informado'}
+              {cursoInfo.horasModuloLivre || 0}h
             </p>
           </div>
         </div>

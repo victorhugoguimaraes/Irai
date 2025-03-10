@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/Irai/dev-sw.js?dev-sw', { scope: '/Irai/', type: 'classic' })

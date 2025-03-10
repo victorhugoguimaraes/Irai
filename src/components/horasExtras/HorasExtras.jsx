@@ -2,7 +2,7 @@ import { useState, useContext } from 'react';
 import { CursoContext } from '../../contexts/CursoContext';
 
 export function HorasExtras() {
-  const { horasExtras = [], setHorasExtras } = useContext(CursoContext);
+  const { horasExtras = [], adicionarHoraExtra, removerHoraExtra } = useContext(CursoContext);
   const [novaAtividade, setNovaAtividade] = useState({
     descricao: '',
     horas: '',
@@ -13,16 +13,16 @@ export function HorasExtras() {
     setNovaAtividade(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!novaAtividade.descricao || !novaAtividade.horas) return;
 
-    setHorasExtras([...horasExtras, {
+    await adicionarHoraExtra({
       id: Date.now(),
       descricao: novaAtividade.descricao,
       horas: Number(novaAtividade.horas),
       tipo: novaAtividade.tipo
-    }]);
+    });
 
     setNovaAtividade({
       descricao: '',
@@ -31,11 +31,11 @@ export function HorasExtras() {
     });
   };
 
-  const removerAtividade = (id) => {
-    setHorasExtras(horasExtras.filter(hora => hora.id !== id));
+  const handleRemover = async (id) => {
+    await removerHoraExtra(id);
   };
 
-  const totalHoras = horasExtras.reduce((sum, atividade) => sum + (Number(atividade.horas) || 0), 0);
+  const totalHoras = horasExtras.reduce((sum, atividade) => sum + Number(atividade.horas), 0);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden">
@@ -130,7 +130,7 @@ export function HorasExtras() {
                     <td className="px-4 py-3 text-sm text-gray-500">{atividade.tipo}</td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => removerAtividade(atividade.id)}
+                        onClick={() => handleRemover(atividade.id)}
                         className="text-red-600 hover:text-red-900 text-sm font-medium"
                       >
                         Remover
